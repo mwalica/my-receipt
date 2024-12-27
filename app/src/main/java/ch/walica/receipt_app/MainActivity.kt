@@ -2,6 +2,7 @@ package ch.walica.receipt_app
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,9 +16,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import ch.walica.receipt_app.camera_screen.CameraScreen
+import ch.walica.receipt_app.detail_screen.DetailScreen
 import ch.walica.receipt_app.main_screen.MainScreen
 import ch.walica.receipt_app.ui.theme.Receipt_appTheme
+import kotlinx.serialization.Serializable
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,8 +37,33 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             Receipt_appTheme {
+
+                val navController = rememberNavController()
+
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    MainScreen(modifier = Modifier.padding(innerPadding))
+                    NavHost(navController = navController, startDestination = ScreenMain) {
+                        composable<ScreenMain> {
+                            MainScreen(
+                                modifier = Modifier.padding(innerPadding),
+                                navController = navController
+                            )
+                        }
+
+                        composable<ScreenCamera> {
+                            CameraScreen(
+                                modifier = Modifier.padding(innerPadding),
+                                navController = navController
+                            )
+                        }
+
+                        composable<ScreenDetail> { backStackEntry ->
+                            val args = backStackEntry.toRoute<ScreenDetail>()
+                            DetailScreen(
+                                modifier = Modifier.padding(innerPadding),
+                                navController = navController, id = args.id
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -53,4 +85,13 @@ class MainActivity : ComponentActivity() {
         )
     }
 }
+
+@Serializable
+object ScreenMain
+
+@Serializable
+object ScreenCamera
+
+@Serializable
+data class ScreenDetail(val id: Long)
 
